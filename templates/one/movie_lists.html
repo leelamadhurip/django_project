@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Movie Lists</title>
+</head>
+<body>
+    <h1>My Movie Lists</h1>
+    <a href="{% url 'create_movie_list' %}">Create New Movie List</a>
+    <ul>
+        {% for list in lists %}
+            {% if list.public or list.user == request.user %}
+                <li>
+                    <h2>{{ list.name }}</h2>
+                    <ul>
+                        {% for movie in list.movie_set.all %}
+                            <li>{{ movie.title }} ({{ movie.imdb_id }})</li>
+                        {% endfor %}
+                    </ul>
+                    <form method="post" action="{% url 'add_movie' list.id %}">
+                        {% csrf_token %}
+                        <input type="text" name="title" placeholder="Movie Title" required>
+                        <input type="text" name="imdb_id" placeholder="IMDB ID" required>
+                        <button type="submit">Add Movie</button>
+                    </form>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</body>
+</html>

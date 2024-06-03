@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Movie</title>
+</head>
+<body>
+    <h1>Add Movie to List</h1>
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="Movie Title" required>
+        <input type="text" name="imdb_id" placeholder="IMDB ID" required>
+        <button type="submit">Add Movie</button>
+    </form>
+</body>
+</html>

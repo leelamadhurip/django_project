@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Movies</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(to bottom, #141E30, #243B55);
+        background-size: cover;
+        background-position: center;
+        height: auto;
+        display: flex;
+        justify-content: center;
+        align-items: top;
+        color: white;
+           
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1000px;
+        }
+        .main-content, .sidebar {
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            margin: 15px;
+        }
+        .main-content {
+            flex: 3;
+        }
+        .sidebar {
+            flex: 1;
+            display: absolute;
+            flex-direction: column;
+            align-items: center;
+            height: 125px;
+        }
+        .search-container input[type="text"], 
+        .create-list-container input[type="text"], 
+        .results select {
+            width: 100%;
+            padding: 6px ;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            margin-bottom: 10px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 16px;
+        }
+        .search-container button, 
+        .create-list-container button {
+            background-color: #007BFF;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        .search-container button:hover, 
+        .create-list-container button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            width: 100%;
+        }
+        .movie {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            color: #333;
+        }
+        .movie img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .movie h3 {
+            margin: 10px 0;
+            font-size: 24px;
+        }
+        .movie p {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+    </style>
+    <script>
+        function addMovieToList(event, imdbID) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            fetch(`/add_movie_to_list/${imdbID}/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            }).then(response => {
+                if (response.ok) {
+                    alert('Movie added successfully!');
+                } else {
+                    alert('Failed to add movie.');
+                }
+            });
+        }
+
+        function createMovieList(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            fetch(`/create_movie_list/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            }).then(response => {
+                if (response.ok) {
+                    alert('Movie list created successfully!');
+                    location.reload(); // Reload the page to update movie lists
+                } else {
+                    alert('Failed to create movie list.');
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <div class="search-container">
+                <form method="get" action="{% url 'search' %}">
+                    <input type="text" name="query" value="{{ query }}" placeholder="Search for movies...">
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+            <div class="results">
+                {% for movie in movies %}
+                <div class="movie">
+                    <h3>{{ movie.Title }}</h3>
+                    <p>{{ movie.Year }}</p>
+                    <img src="http://img.omdbapi.com/?apikey={{ your_omdb_api_key }}&i={{ movie.imdbID }}" alt="{{ movie.Title }} poster">
+                    <form method="post" action="{% url 'add_movie_to_list' movie.imdbID %}" class="movie-list-form" onsubmit="addMovieToList(event, '{{ movie.imdbID }}')">
+                        {% csrf_token %}
+                        <select name="movie_list">
+                            {% for list in movie_lists %}
+                            <option value="{{ list.id }}">{{ list.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="hidden" name="title" value="{{ movie.Title }}">
+                        <input type="hidden" name="imdb_id" value="{{ movie.imdbID }}">
+                        <button type="submit">Add to List</button>
+                    </form>
+                </div>
+                {% empty %}
+                <p>No results found.</p>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="sidebar">
+            <h3>Create New Movie List</h3>
+            <form method="post" action="{% url 'create_movie_list' %}" onsubmit="createMovieList(event)">
+                {% csrf_token %}
+                <input type="text" name="name" placeholder="List name" required>
+                <button type="submit">Create List</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
