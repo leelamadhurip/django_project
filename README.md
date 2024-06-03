@@ -1,4 +1,6 @@
 Movie Search Application:
+
+
 Overview
 The Movie Search Application is a web-based platform that allows users to search for movies and manage personalized movie lists. Users can create new movie lists, add movies to existing lists, and view movie details fetched from the OMDb API.
 
